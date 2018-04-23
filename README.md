@@ -61,7 +61,7 @@ $ sh ~/Projects/src/github.com/mpolednik/shellhelpers/kubectl.sh get nodes
 No resources found.
 ```
 
-Progress! We can now use kubectl as in case with minikube. But would something happen? There is not a single service (or controller) that knows how to interact with such resources. One of the first controllers we need is a kubelet - the Kubernetes node agent.
+Progress! We can now use kubectl as with minikube. But does anything happen? There is not a single service (or controller) that knows how to interact with our resources. One of the first controllers we need is a kubelet - the Kubernetes node agent.
 
 ```bash
 $ sh ~/Projects/src/github.com/mpolednik/shellhelpers/start-kubelet.sh >/dev/null 2>&1 &
@@ -160,7 +160,7 @@ status:
     systemUUID: B7194D56-CC26-9A60-C114-C1E16468A91C
 ```
 
-Node is our first resource. Note that it is created and maintained by Kubelet itself, but may be extended through Kubelet APIs. We may think of node resource as something internal to the cluster - let's get into creating our own resource.
+Node is our first resource. Note that it is created and maintained by Kubelet itself, but may be extended through Kubelet APIs. We may think of node resource as something internal to the cluster - let's get into creating our own resource(s).
 
 First, we need to build our app,
 
@@ -168,13 +168,13 @@ First, we need to build our app,
 $ docker build -t helloworld:latest .
 ```
 
-and make sure we have a local registry that we can use to store the image.
+and make sure that we have a local registry that we can use to store the image.
 
 ```bash
 $ docker run -d -p 5000:5000 --restart=always --name registry registry:2
 ```
 
-With that set up, let's push the image and verify it's present.
+With that set up, let's push the image to the registry and verify it's there.
 
 ```bash
 $ docker tag helloworld localhost:5000/helloworld
@@ -186,7 +186,7 @@ Digest: sha256:2ba55cb08f236a70cabddbc64a4bd39e0120af4f3bbd91344f2d3a84309eeba1
 Status: Image is up to date for localhost:5000/helloworld:latest
 ```
 
-How do we start the image in Kubernetes? `kubectl` can create a resource that defines deployment.
+How do we start the image in Kubernetes? `kubectl` can create a resource that defines a deployment.
 
 ```bash
 $ sh ~/Projects/src/github.com/mpolednik/shellhelpers/kubectl.sh run app --image=localhost:5000/helloworld:latest --replicas=2 --port=80
@@ -211,7 +211,7 @@ NAME      DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE
 app       2         2         2            0           3m
 ```
 
-kube-controller-manager was able to process the resource, and determine that there are pods to be ran.
+kube-controller-manager was able to process the resource and determine that there are pods to be started.
 
 ```bash
 $ sh ~/Projects/src/github.com/mpolednik/shellhelpers/kubectl.sh get pods
@@ -233,9 +233,9 @@ app-75b6d4cdc6-jzfvd   1/1       Running   0          1m
 app-75b6d4cdc6-nsf8c   1/1       Running   0          1m
 ```
 
-Magic. We've been able to transfer the initial deployment resource into a pod resource, and our controllers filled in the details to make it run.
+Magic. We've been able to transfer the initial deployment resource into a pod resource, and our controllers filled in the details to make it work.
 
-This cluster is not capable of doing networking yet, but we could still poke around the underlying containers to see that our app really works.
+This cluster is not capable of doing networking yet, but we can still poke around the underlying containers to see that our app really works.
 
 ```bash
 $ docker ps -a
