@@ -1,4 +1,8 @@
-# Demo 1: minikube
+# CNCF Brno Kubernetes 101 Live Demo
+
+The environment was setup through mpolednik's [shellscripts](https://github.com/mpolednik/shellhelpers).
+
+## Demo 1: minikube
 
 Start up the minikube environment (using hyperkit, darwin hypervisor built for docker).
 
@@ -6,7 +10,7 @@ Start up the minikube environment (using hyperkit, darwin hypervisor built for d
 $ ./minikube-darwin-amd64 --vm-driver=hyperkit start
 ```
 
-# Demo 2: Kubernetes "from scratch"
+## Demo 2: Kubernetes "from scratch"
 
 Fire up the VM (VMware Fusion). The VM itself is CentOS 7.5, contains Kubernetes and etcd sources and binaries.
 
