@@ -1,4 +1,4 @@
-# CNCF Brno Kubernetes 101 Live Demo
+# Cloud Native Brno Kubernetes 101 Live Demo
 
 The environment was setup through mpolednik's [shellscripts](https://github.com/mpolednik/shellhelpers).
 
