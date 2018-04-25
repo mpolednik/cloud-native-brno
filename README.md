@@ -4,10 +4,95 @@ The environment was setup through mpolednik's [shellscripts](https://github.com/
 
 ## Demo 1: minikube
 
+The demo is based on [hello-minikube](https://kubernetes.io/docs/tutorials/stateless-application/hello-minikube/) document.
 Start up the minikube environment (using hyperkit, darwin hypervisor built for docker).
 
 ```bash
-$ ./minikube-darwin-amd64 --vm-driver=hyperkit start
+$ ./minikube --vm-driver=hyperkit start
+```
+
+Next, jump into docker environment of the minikube (implementation detail - we're not using local docker!).
+
+```bash
+$ eval $(./minikube docker-env)
+```
+
+We have a sample flask application (nothing fancy) in app/. To properly run in Kubernetes, we need to built it as a docker image.
+
+```bash
+$ docker build -t app:latest .
+```
+
+When the image is built, we may deploy the app to Kubernetes cluster using deployment resource.
+
+```yaml
+apiVersion: v1
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    run: app
+  name: app
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      run: app
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        run: app
+    spec:
+      containers:
+      - image: app:latest
+        imagePullPolicy: IfNotPresent
+        name: app
+        ports:
+        - containerPort: 5000
+          protocol: TCP
+      restartPolicy: Always
+      securityContext: {}
+```
+
+We may now verify that the deployment and associated pods are running.
+
+```bash
+$ kubectl get deployments
+NAME      DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE
+app       1         1         1            1           41s
+
+$ kubectl get pods
+NAME                  READY     STATUS    RESTARTS   AGE
+app-7784f5f5f-8pvvs   1/1       Running   0          1m
+```
+
+We cannot access it yet, as it's only running within the cluster. Kubernetes gives us a way to expose an application as a service.
+
+```bash
+$ kubectl expose deployment app --type=LoadBalancer
+service "app" exposed
+```
+
+And minikube has a way to route --type=LoadBalancer services outside of its VM.
+
+```bash
+$ ./minikube service app
+Opening kubernetes service default/app in default browser...
+```
+
+That's it! Time for a cleanup.
+
+```bash
+$ eval $(./minikube docker-env -u)
+
+$ ./minikube stop
+Stopping local Kubernetes cluster...
 ```
 
 ## Demo 2: Kubernetes "from scratch"
